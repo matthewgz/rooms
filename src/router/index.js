@@ -1,29 +1,78 @@
 import Vue from 'vue';
-import VueRouter from 'vue-router';
-import Home from '../views/Home.vue';
+import Router from 'vue-router';
+import store from '../store';
+import HomePage from '../views/HomePage.vue';
+import SearchPage from '../views/SearchPage.vue';
+import NotFoundPage from '../views/NotFoundPage.vue';
+import CreateHousePage from '../views/CreateHousePage.vue';
 
-Vue.use(VueRouter);
+// User Pages
+import ProfilePage from '../views/user/ProfilePage.vue';
+import HousesPages from '../views/user/HousesPage.vue';
 
-const routes = [
-  {
-    path: '/',
-    name: 'Home',
-    component: Home,
-  },
-  {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue'),
-  },
-];
+Vue.use(Router);
 
-const router = new VueRouter({
+const router = new Router({
   mode: 'history',
   base: process.env.BASE_URL,
-  routes,
+  routes: [
+    {
+      path: '/',
+      name: 'HomePage',
+      component: HomePage,
+    },
+    {
+      path: '/search',
+      name: 'SearchPage',
+      component: SearchPage,
+    },
+    {
+      path: '/user',
+      redirect: { name: 'ProfilePage' },
+    },
+    {
+      path: '/user/profile',
+      name: 'ProfilePage',
+      component: ProfilePage,
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/user/houses',
+      name: 'HousesPages',
+      component: HousesPages,
+    },
+    {
+      path: '/house',
+      redirect: { name: 'ProfilePage' },
+    },
+    {
+      path: '/house/new',
+      name: 'CreateHousePage',
+      component: CreateHousePage,
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '*',
+      name: 'NotFoundPage',
+      component: NotFoundPage,
+    },
+  ],
+});
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.some((route) => route.meta.requiresAuth)) {
+    if (store.state.authId) {
+      next();
+    } else {
+      next({ name: 'HomePage' });
+    }
+  } else {
+    next();
+  }
 });
 
 export default router;
